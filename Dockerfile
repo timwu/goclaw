@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
 
 # ── Stage 1: Build ──
-FROM golang:1.26-bookworm AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26-bookworm AS builder
+
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /src
 
@@ -29,7 +32,7 @@ RUN set -eux; \
         if [ -n "$TAGS" ]; then TAGS="$TAGS,redis"; else TAGS="redis"; fi; \
     fi; \
     if [ -n "$TAGS" ]; then TAGS="-tags $TAGS"; fi; \
-    CGO_ENABLED=0 GOOS=linux \
+    CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w -X github.com/nextlevelbuilder/goclaw/cmd.Version=${VERSION}" \
     ${TAGS} -o /out/goclaw .
 
