@@ -19,6 +19,7 @@ export const ROUTES = {
   USAGE: "/usage",
   CHANNELS: "/channels",
   CHANNEL_DETAIL: "/channels/:id",
+  CONTACTS: "/contacts",
   APPROVALS: "/approvals",
   NODES: "/nodes",
   LOGS: "/logs",
@@ -32,6 +33,8 @@ export const ROUTES = {
   STORAGE: "/storage",
   PENDING_MESSAGES: "/pending-messages",
   MEMORY: "/memory",
+  KNOWLEDGE_GRAPH: "/knowledge-graph",
+  ACTIVITY: "/activity",
   SETUP: "/setup",
 } as const;
 

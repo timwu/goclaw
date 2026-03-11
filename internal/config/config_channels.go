@@ -1,14 +1,26 @@
 package config
 
+// PendingCompactionConfig configures LLM-based compaction of pending group messages.
+// When a group accumulates more than Threshold pending messages, older messages are
+// summarized by an LLM and replaced with a compact summary, keeping KeepRecent raw messages.
+type PendingCompactionConfig struct {
+	Threshold  int    `json:"threshold,omitempty"`   // trigger compaction when entries exceed this (default 50)
+	KeepRecent int    `json:"keep_recent,omitempty"` // keep this many recent raw messages after compaction (default 15)
+	MaxTokens  int    `json:"max_tokens,omitempty"`  // max output tokens for LLM summarization (default 4096)
+	Provider   string `json:"provider,omitempty"`    // LLM provider name (e.g. "openai"); empty = use agent's provider
+	Model      string `json:"model,omitempty"`       // model for summarization; empty = use agent's model
+}
+
 // ChannelsConfig contains per-channel configuration.
 type ChannelsConfig struct {
-	Telegram     TelegramConfig     `json:"telegram"`
-	Discord      DiscordConfig      `json:"discord"`
-	Slack        SlackConfig        `json:"slack"`
-	WhatsApp     WhatsAppConfig     `json:"whatsapp"`
-	Zalo         ZaloConfig         `json:"zalo"`
-	ZaloPersonal ZaloPersonalConfig `json:"zalo_personal"`
-	Feishu       FeishuConfig       `json:"feishu"`
+	Telegram          TelegramConfig           `json:"telegram"`
+	Discord           DiscordConfig            `json:"discord"`
+	Slack             SlackConfig              `json:"slack"`
+	WhatsApp          WhatsAppConfig           `json:"whatsapp"`
+	Zalo              ZaloConfig               `json:"zalo"`
+	ZaloPersonal      ZaloPersonalConfig       `json:"zalo_personal"`
+	Feishu            FeishuConfig             `json:"feishu"`
+	PendingCompaction *PendingCompactionConfig `json:"pending_compaction,omitempty"` // global pending message compaction settings
 }
 
 type TelegramConfig struct {
@@ -182,9 +194,17 @@ type ProvidersConfig struct {
 	Perplexity ProviderConfig  `json:"perplexity"`
 	DashScope  ProviderConfig  `json:"dashscope"`
 	Bailian    ProviderConfig  `json:"bailian"`
-	Zai        ProviderConfig  `json:"zai"`
-	ZaiCoding  ProviderConfig  `json:"zai_coding"`
-	ClaudeCLI  ClaudeCLIConfig `json:"claude_cli"`
+	Zai         ProviderConfig  `json:"zai"`
+	ZaiCoding   ProviderConfig  `json:"zai_coding"`
+	Ollama      OllamaConfig    `json:"ollama"`       // local Ollama instance (no API key needed)
+	OllamaCloud ProviderConfig  `json:"ollama_cloud"` // Ollama Cloud (API key required)
+	ClaudeCLI   ClaudeCLIConfig `json:"claude_cli"`
+}
+
+// OllamaConfig configures a local (or self-hosted) Ollama instance.
+// No API key is required — Ollama accepts any Bearer token value.
+type OllamaConfig struct {
+	Host string `json:"host"` // Ollama server base URL, e.g. http://localhost:11434
 }
 
 // ClaudeCLIConfig configures the Claude CLI provider (uses subscription, not API key).
@@ -218,6 +238,8 @@ func (c *Config) HasAnyProvider() bool {
 		p.Bailian.APIKey != "" ||
 		p.Zai.APIKey != "" ||
 		p.ZaiCoding.APIKey != "" ||
+		p.Ollama.Host != "" ||
+		p.OllamaCloud.APIKey != "" ||
 		p.ClaudeCLI.CLIPath != ""
 }
 
